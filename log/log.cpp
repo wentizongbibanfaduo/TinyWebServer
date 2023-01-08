@@ -31,8 +31,8 @@ bool Log::init(const char *file_name, int close_log, int log_buf_size, int split
         //flush_log_thread为回调函数,这里表示创建线程异步写日志
         pthread_create(&tid, NULL, flush_log_thread, NULL);
     }
-    
-    m_close_log = close_log;
+
+    Log::closeLog = close_log;
     m_log_buf_size = log_buf_size;
     m_buf = new char[m_log_buf_size];
     memset(m_buf, '\0', m_log_buf_size);

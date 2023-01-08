@@ -31,56 +31,56 @@ WebServer::~WebServer()
 void WebServer::init(int port, string user, string passWord, string databaseName, int log_write, 
                      int opt_linger, int trigmode, int sql_num, int thread_num, int close_log, int actor_model)
 {
-    m_port = port;
-    m_user = user;
-    m_passWord = passWord;
-    m_databaseName = databaseName;
-    m_sql_num = sql_num;
-    m_thread_num = thread_num;
-    m_log_write = log_write;
-    m_OPT_LINGER = opt_linger;
-    m_TRIGMode = trigmode;
-    m_close_log = close_log;
-    m_actormodel = actor_model;
+    m_config.PORT = port;
+    m_config.user = user;
+    m_config.password= passWord;
+    m_config.databaseName = databaseName;
+    m_config.sql_num = sql_num;
+    m_config.thread_num = thread_num;
+    m_config.LOGWrite = log_write;
+    m_config.OPT_LINGER = opt_linger;
+    m_config.TRIGMode = trigmode;
+    m_config.close_log = close_log;
+    m_config.actor_model = actor_model;
 }
 
 void WebServer::trig_mode()
 {
     //LT + LT
-    if (0 == m_TRIGMode)
+    if (0 == m_config.TRIGMode)
     {
-        m_LISTENTrigmode = 0;
-        m_CONNTrigmode = 0;
+        m_config.LISTENTrigmode = 0;
+        m_config.CONNTrigmode = 0;
     }
     //LT + ET
-    else if (1 == m_TRIGMode)
+    else if (1 == m_config.TRIGMode)
     {
-        m_LISTENTrigmode = 0;
-        m_CONNTrigmode = 1;
+        m_config.LISTENTrigmode = 0;
+        m_config.CONNTrigmode = 1;
     }
     //ET + LT
-    else if (2 == m_TRIGMode)
+    else if (2 == m_config.TRIGMode)
     {
-        m_LISTENTrigmode = 1;
-        m_CONNTrigmode = 0;
+        m_config.LISTENTrigmode = 1;
+        m_config.CONNTrigmode = 0;
     }
     //ET + ET
-    else if (3 == m_TRIGMode)
+    else if (3 == m_config.TRIGMode)
     {
-        m_LISTENTrigmode = 1;
-        m_CONNTrigmode = 1;
+        m_config.LISTENTrigmode = 1;
+        m_config.CONNTrigmode = 1;
     }
 }
 
 void WebServer::log_write()
 {
-    if (0 == m_close_log)
+    if (0 == m_config.close_log)
     {
         //初始化日志
-        if (1 == m_log_write)
-            Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 800);
+        if (1 == m_config.LOGWrite)
+            Log::get_instance()->init("./ServerLog", m_config.close_log, 2000, 800000, 800);
         else
-            Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 0);
+            Log::get_instance()->init("./ServerLog", m_config.close_log, 2000, 800000, 0);
     }
 }
 
@@ -88,7 +88,7 @@ void WebServer::sql_pool()
 {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
-    m_connPool->init("localhost", m_user, m_passWord, m_databaseName, 3306, m_sql_num, m_close_log);
+    m_connPool->init("localhost", m_config.user, m_config.password, m_config.databaseName, 3306, m_config.sql_num, m_config.close_log);
 
     //初始化数据库读取表
     users->initmysql_result(m_connPool);
@@ -97,7 +97,7 @@ void WebServer::sql_pool()
 void WebServer::thread_pool()
 {
     //线程池
-    m_pool = new threadpool<http_conn>(m_actormodel, m_connPool, m_thread_num);
+    m_pool = new threadpool<http_conn>(m_config.actor_model, m_connPool, m_config.thread_num);
 }
 
 void WebServer::eventListen()
@@ -107,12 +107,12 @@ void WebServer::eventListen()
     assert(m_listenfd >= 0);
 
     //优雅关闭连接
-    if (0 == m_OPT_LINGER)
+    if (0 == m_config.OPT_LINGER)
     {
         struct linger tmp = {0, 1};
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
     }
-    else if (1 == m_OPT_LINGER)
+    else if (1 == m_config.OPT_LINGER)
     {
         struct linger tmp = {1, 1};
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
@@ -123,7 +123,7 @@ void WebServer::eventListen()
     bzero(&address, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
-    address.sin_port = htons(m_port);
+    address.sin_port = htons(m_config.PORT);
 
     int flag = 1;
     setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
@@ -139,7 +139,7 @@ void WebServer::eventListen()
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
-    utils.addfd(m_epollfd, m_listenfd, false, m_LISTENTrigmode);
+    utils.addfd(m_epollfd, m_listenfd, false, m_config.LISTENTrigmode);
     http_conn::m_epollfd = m_epollfd;
 
     ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd);
@@ -160,7 +160,7 @@ void WebServer::eventListen()
 
 void WebServer::timer(int connfd, struct sockaddr_in client_address)
 {
-    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord, m_databaseName);
+    users[connfd].init(connfd, client_address, m_root, m_config.CONNTrigmode, m_config.close_log, m_config.user, m_config.password, m_config.databaseName);
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
@@ -201,7 +201,7 @@ bool WebServer::dealclinetdata()
 {
     struct sockaddr_in client_address;
     socklen_t client_addrlength = sizeof(client_address);
-    if (0 == m_LISTENTrigmode)
+    if (0 == m_config.LISTENTrigmode)
     {
         int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
         if (connfd < 0)
@@ -282,7 +282,7 @@ void WebServer::dealwithread(int sockfd)
     util_timer *timer = users_timer[sockfd].timer;
 
     //reactor
-    if (1 == m_actormodel)
+    if (1 == m_config.actor_model)
     {
         if (timer)
         {
@@ -332,7 +332,7 @@ void WebServer::dealwithwrite(int sockfd)
 {
     util_timer *timer = users_timer[sockfd].timer;
     //reactor
-    if (1 == m_actormodel)
+    if (1 == m_config.actor_model)
     {
         if (timer)
         {

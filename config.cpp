@@ -30,9 +30,13 @@ Config::Config(){
 
     //并发模型,默认是proactor
     actor_model = 0;
+
+    user = "root";
+    password = "root";
+    databaseName = "yourdb";
 }
 
-void Config::parse_arg(int argc, char*argv[]){
+void Config::parse_arg(int argc, char* argv[]){
     int opt;
     const char *str = "p:l:m:o:s:t:c:a:";
     while ((opt = getopt(argc, argv, str)) != -1)

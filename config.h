@@ -1,7 +1,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "webserver.h"
+#include<unistd.h>
+#include <stdlib.h>
+#include <string>
 
 using namespace std;
 
@@ -42,6 +44,10 @@ public:
 
     //并发模型选择
     int actor_model;
+
+    std::string user;         //登陆数据库用户名
+    std::string password;     //登陆数据库密码
+    std::string databaseName; //使用数据库名
 };
 
 #endif

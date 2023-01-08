@@ -1,3 +1,6 @@
 *ServerLog
+.vscode
+.idea/
 server
 build/
+cmake-build-debug/

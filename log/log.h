@@ -14,6 +14,7 @@ class Log
 {
 public:
     //C++11以后,使用局部变量懒汉不用加锁
+
     static Log *get_instance()
     {
         static Log instance;
@@ -30,6 +31,10 @@ public:
     void write_log(int level, const char *format, ...);
 
     void flush(void);
+
+    inline int enable(){
+        return closeLog;
+    }
 
 private:
     Log();
@@ -58,12 +63,32 @@ private:
     block_queue<string> *m_log_queue; //阻塞队列
     bool m_is_async;                  //是否同步标志位
     locker m_mutex;
-    int m_close_log; //关闭日志
+    int closeLog;
+
 };
 
-#define LOG_DEBUG(format, ...) if(0 == m_close_log) {Log::get_instance()->write_log(0, format, ##__VA_ARGS__); Log::get_instance()->flush();}
-#define LOG_INFO(format, ...) if(0 == m_close_log) {Log::get_instance()->write_log(1, format, ##__VA_ARGS__); Log::get_instance()->flush();}
-#define LOG_WARN(format, ...) if(0 == m_close_log) {Log::get_instance()->write_log(2, format, ##__VA_ARGS__); Log::get_instance()->flush();}
-#define LOG_ERROR(format, ...) if(0 == m_close_log) {Log::get_instance()->write_log(3, format, ##__VA_ARGS__); Log::get_instance()->flush();}
+#define LOG_DEBUG(format, ...) \
+    do{ \
+        if(0 == Log::get_instance()->enable()) { \
+            Log::get_instance()->write_log(0, format, ##__VA_ARGS__); \
+            Log::get_instance()->flush();}                            \
+            }while(false)
+
+#define LOG_INFO(format, ...) \
+    do{                       \
+        if(0 == Log::get_instance()->enable()) { \
+            Log::get_instance()->write_log(1, format, ##__VA_ARGS__); \
+            Log::get_instance()->flush();}                            \
+            }while (false)
+#define LOG_WARN(format, ...) \
+    do{if(0 == Log::get_instance()->enable()) { \
+        Log::get_instance()->write_log(2, format, ##__VA_ARGS__); \
+        Log::get_instance()->flush();}                            \
+        }while (false)
+#define LOG_ERROR(format, ...) \
+    do{                        \
+        if(0 == Log::get_instance()->enable()) {Log::get_instance()->write_log(3, format, ##__VA_ARGS__); \
+        Log::get_instance()->flush();}                                                      \
+        }while (false)
 
 #endif
