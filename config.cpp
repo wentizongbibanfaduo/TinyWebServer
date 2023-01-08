@@ -2,38 +2,38 @@
 
 Config::Config(){
     //端口号,默认9006
-    PORT = 9006;
+    m_port = 9006;
 
     //日志写入方式，默认同步
-    LOGWrite = 0;
+    m_log_write = 0;
 
     //触发组合模式,默认listenfd LT + connfd LT
-    TRIGMode = 0;
+    m_trig_mode = 0;
 
     //listenfd触发模式，默认LT
-    LISTENTrigmode = 0;
+    m_listen_trig_mode = 0;
 
     //connfd触发模式，默认LT
-    CONNTrigmode = 0;
+    m_conn_trig_mode = 0;
 
     //优雅关闭链接，默认不使用
-    OPT_LINGER = 0;
+    m_opt_linger = 0;
 
     //数据库连接池数量,默认8
-    sql_num = 8;
+    m_sql_nums = 8;
 
     //线程池内的线程数量,默认8
-    thread_num = 8;
+    m_thread_nums = 8;
 
     //关闭日志,默认不关闭
-    close_log = 0;
+    m_close_log = 0;
 
     //并发模型,默认是proactor
-    actor_model = 0;
+    m_actor_model = 0;
 
-    user = "root";
-    password = "root";
-    databaseName = "yourdb";
+    m_user = "root";
+    m_password = "root";
+    m_database_name = "yourdb";
 }
 
 void Config::parse_arg(int argc, char* argv[]){
@@ -45,42 +45,42 @@ void Config::parse_arg(int argc, char* argv[]){
         {
         case 'p':
         {
-            PORT = atoi(optarg);
+            m_port = atoi(optarg);
             break;
         }
         case 'l':
         {
-            LOGWrite = atoi(optarg);
+            m_log_write = atoi(optarg);
             break;
         }
         case 'm':
         {
-            TRIGMode = atoi(optarg);
+            m_trig_mode = atoi(optarg);
             break;
         }
         case 'o':
         {
-            OPT_LINGER = atoi(optarg);
+            m_opt_linger = atoi(optarg);
             break;
         }
         case 's':
         {
-            sql_num = atoi(optarg);
+            m_sql_nums = atoi(optarg);
             break;
         }
         case 't':
         {
-            thread_num = atoi(optarg);
+            m_thread_nums = atoi(optarg);
             break;
         }
         case 'c':
         {
-            close_log = atoi(optarg);
+            m_close_log = atoi(optarg);
             break;
         }
         case 'a':
         {
-            actor_model = atoi(optarg);
+            m_actor_model = atoi(optarg);
             break;
         }
         default:

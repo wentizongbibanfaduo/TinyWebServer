@@ -57,12 +57,12 @@ int setnonblocking(int fd)
 }
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
+void addfd(int epollfd, int fd, bool one_shot, int trig_mode)
 {
     epoll_event event;
     event.data.fd = fd;
 
-    if (1 == TRIGMode)
+    if (1 == trig_mode)
         event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     else
         event.events = EPOLLIN | EPOLLRDHUP;
@@ -81,12 +81,12 @@ void removefd(int epollfd, int fd)
 }
 
 //将事件重置为EPOLLONESHOT
-void modfd(int epollfd, int fd, int ev, int TRIGMode)
+void modfd(int epollfd, int fd, int ev, int trig_mode)
 {
     epoll_event event;
     event.data.fd = fd;
 
-    if (1 == TRIGMode)
+    if (1 == trig_mode)
         event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
     else
         event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
@@ -110,7 +110,7 @@ void http_conn::close_conn(bool real_close)
 }
 
 //初始化连接,外部调用初始化套接字地址
-void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode,
+void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int trig_mode,
                      int close_log, string user, string passwd, string sqlname)
 {
     m_sockfd = sockfd;
@@ -121,7 +121,7 @@ void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMo
 
     //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
     doc_root = root;
-    m_TRIGMode = TRIGMode;
+    m_TRIGMode = trig_mode;
     m_close_log = close_log;
 
     strcpy(sql_user, user.c_str());

@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include<unistd.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string>
 
@@ -16,38 +16,43 @@ public:
     void parse_arg(int argc, char*argv[]);
 
     //端口号
-    int PORT;
+    int m_port;
 
     //日志写入方式
-    int LOGWrite;
+    int m_log_write;
 
     //触发组合模式
-    int TRIGMode;
+    int m_trig_mode;
 
     //listenfd触发模式
-    int LISTENTrigmode;
+    int m_listen_trig_mode;
 
     //connfd触发模式
-    int CONNTrigmode;
+    int m_conn_trig_mode;
 
     //优雅关闭链接
-    int OPT_LINGER;
+    int m_opt_linger;
 
     //数据库连接池数量
-    int sql_num;
+    int m_sql_nums;
 
     //线程池内的线程数量
-    int thread_num;
+    int m_thread_nums;
 
     //是否关闭日志
-    int close_log;
+    int m_close_log;
 
     //并发模型选择
-    int actor_model;
+    int m_actor_model;
 
-    std::string user;         //登陆数据库用户名
-    std::string password;     //登陆数据库密码
-    std::string databaseName; //使用数据库名
+    //登陆数据库用户名
+    std::string m_user;
+
+    //登陆数据库密码         
+    std::string m_password;
+
+    //使用数据库名    
+    std::string m_database_name; 
 };
 
 #endif
