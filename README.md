@@ -1,4 +1,4 @@
-魔改 TinyWebServer日记
+TinyWebServer魔改日记
 
 # TinyWebServer简介
 
@@ -14,24 +14,60 @@ TinyWebServer是github上 9.1k start的C++轻量级Web服务器。
 
 
 # 个人输出
-尝试对于TinyWebServer进行编译优化、代码重构
+由于TinyWebServer仅是入门学习，非成熟商业项目，重点内容主要对于从0-1的http解析、epoll的实现。
 
-> 查看commit web 记录需要登录gitee，提供账户用于面试
-> 
-> 账号： wentizongbibanfaduo02 
->
-> 密码： asd123..
+代码质量并不高，阅读代码过程中发现许多问题，尝试基于个人经验对于TinyWebServer进行编译优化、代码重构。
+
+> 查看commit web 需要登录gitee
 
 
-- 使用docker打包编译环境
-
-    commit id: e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338
-
-    [commit web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338)
-
-- 使用cmake代替makefile
+## 使用docker打包编译环境
   
+通过docker，可以帮助其他开发者快速搭建相同编译环境，并且配置了ccache，提高编译速度。
+
+commit id: e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338
+
+[commit web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338)
+
+    
+
+## 使用cmake代替makefile
+  
+  cmake对于后期维护管理编译更为便捷。
+
   commit id: de2687806a15059d85017e78004446a9b7028968
   
   [commit web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/de2687806a15059d85017e78004446a9b7028968)
-    
+
+## 优化读取config配置
+
+   原始代码中，server内部重新定义了一份config,变量冗余且函数参数过多。
+   并且变量命令不规范，各种命名方式都有。
+   ![main-server](./picture/main-server.png)
+
+   ![server-init](./picture/server-init.png)
+
+   对此进行优化:
+
+   除去server init 方法，将config变为server内部变量，同时规范命名，统一使用下划线。
+
+   >* Effective c++中使用初始化队列，可以在变量定义的时候就初始化，对比放在函数内少一次赋值操作。
+   >* Effective c++中多使用const 关键词，编译器会对const 修饰变量进行优化。
+
+   ![server-config](./picture/server-config.png)
+   - 将config放在server类中
+  
+      commit id: 
+   b0ed4ebaab25a6063d0b5088e0bdb7589879375a
+
+      [commit-web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/b0ed4ebaab25a6063d0b5088e0bdb7589879375a)
+
+   - 规范变量命名
+  
+      commit id 9de73356b9f35cc1010a494b704848919da31088
+
+      [commit-web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/9de73356b9f35cc1010a494b704848919da31088)
+  
+##  宏定义多条语句使用do{}while(0)
+宏定义多条语句应使用do{}while(0)，以预防编译预处理中的替换宏导致的bug。
+![define](./picture/define.png)
