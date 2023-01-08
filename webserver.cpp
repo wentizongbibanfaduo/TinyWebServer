@@ -25,6 +25,10 @@ WebServer::~WebServer()
     delete[] users;
     delete[] users_timer;
     delete m_pool;
+    if (m_root != nullptr) {
+        free(m_root);
+        m_root = nullptr;
+    }
 }
 
 void WebServer::trig_mode()
