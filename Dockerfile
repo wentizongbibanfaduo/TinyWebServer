@@ -12,5 +12,5 @@ deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted u
 " > /etc/apt/sources.list
 
 RUN apt update && apt upgrade
-RUN apt install -y mysql-server gcc g++ make libmysqlclient-dev ccache
+RUN apt install -y mysql-server gcc g++ cmake make libmysqlclient-dev ccache
 

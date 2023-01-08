@@ -1,24 +1,39 @@
 #!/bin/bash
-set -eux
+set -ex
 
 BUILDFILE=$0
 ARGNUMS=$#
-TARGET=$@
-
-if [ ${ARGNUMS} = 0 ];then
-	TARGET="make"
-fi
+build(){
+	if [-f server ];then
+		rm server
+	fi
+	if [ -d build ];then
+		rm build -rf
+	fi
+	mkdir build
+	pushd build
+	cmake ..
+	make -j8
+	make install
+	popd
+}
 build_docker(){
 	if [ -f Dockerfile ];then
 		echo "start build docker image"
 		docker build -t zhou:0.1 .
+		echo "build docker successful! need restart bash build.sh"
 	else
 		echo "no search Dockerfile"
 		exit -1
 	fi
 }
 
-if [[ "$(docker images -q zhou:0.1 2> /dev/null)" == "" ]];then
+if [ "${BUILD_TYPE}" = "docker" ];then
+	build
+	exit 0
+fi
+
+if [[ "$(docker images -q zhou:0.1 2> /dev/null)" = "" ]];then
 	echo "no search build docker"
 	build_docker
 else
@@ -31,7 +46,9 @@ else
 		-e CCACHE_DIR=/usr1/cache \
 		-e CXX="ccache g++" \
 		-e CC="ccache gcc" \
+		-e BUILD_TYPE="docker" \
 		-w $PWD \
 		zhou:0.1 \
-		${TARGET}
+		bash build.sh
 fi
+
