@@ -1,5 +1,3 @@
-CXX ?= g++
-
 DEBUG ?= 1
 ifeq ($(DEBUG), 1)
     CXXFLAGS += -g
