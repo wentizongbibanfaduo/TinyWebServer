@@ -18,12 +18,14 @@ TinyWebServer是github上 9.1k start的C++轻量级Web服务器。
 
 代码质量并不高，阅读代码过程中发现许多问题，尝试基于个人经验对于TinyWebServer进行编译优化、代码重构。
 
-> 查看commit web 需要登录gitee
+> 查看commit web进行review， 需要登录gitee
 
 
 ## 使用docker打包编译环境
   
-通过docker，可以帮助其他开发者快速搭建相同编译环境，并且配置了ccache，提高编译速度。
+在build.sh中增加编译docker,打包编译环境。
+
+通过docker可以帮助其他开发者快速搭建相同编译环境，并且配置了ccache，提高编译速度。
 
 commit id: e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338
 
@@ -42,7 +44,7 @@ commit id: e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338
 ## 优化读取config配置
 
    原始代码中，server内部重新定义了一份config,变量冗余且函数参数过多。
-   并且变量命令不规范，各种命名方式都有。
+   并且变量命名不规范，各种命名方式都有。
    ![main-server](./picture/main-server.png)
 
    ![server-init](./picture/server-init.png)
@@ -57,16 +59,21 @@ commit id: e0c1a0b3c0b3f5c149f5823b7bcf74874ed7f338
    ![server-config](./picture/server-config.png)
    - 将config放在server类中
   
-      commit id: 
-   b0ed4ebaab25a6063d0b5088e0bdb7589879375a
+      commit id: b0ed4ebaab25a6063d0b5088e0bdb7589879375a
 
       [commit-web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/b0ed4ebaab25a6063d0b5088e0bdb7589879375a)
 
    - 规范变量命名
   
-      commit id 9de73356b9f35cc1010a494b704848919da31088
+      commit id: 9de73356b9f35cc1010a494b704848919da31088
 
       [commit-web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/9de73356b9f35cc1010a494b704848919da31088)
+
+   - 将config变量设为private 提供set/get方法修改访问
+  
+      commit id: 332011f96fbec294db0be2f4daf4d48901411b68 
+
+      [commit-web](https://gitee.com/wentizongbibanfaduo/TinyWebServer/commit/332011f96fbec294db0be2f4daf4d48901411b68)
   
 ##  宏定义多条语句使用do{}while(0)
 宏定义多条语句应使用do{}while(0)，以预防编译预处理中的替换宏导致的bug。
