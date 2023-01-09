@@ -1,6 +1,7 @@
 #include "config.h"
 
-Config::Config(){
+Config::Config()
+{
     //端口号,默认9006
     m_port = 9006;
 
@@ -36,55 +37,72 @@ Config::Config(){
     m_database_name = "yourdb";
 }
 
-void Config::parse_arg(int argc, char* argv[]){
+void Config::parse_arg(int argc, char* argv[])
+{
     int opt;
-    const char *str = "p:l:m:o:s:t:c:a:";
+    const char *str = "p:l:m:o:s:t:c:a:u:w:d:";
     while ((opt = getopt(argc, argv, str)) != -1)
     {
         switch (opt)
         {
-        case 'p':
-        {
-            m_port = atoi(optarg);
-            break;
-        }
-        case 'l':
-        {
-            m_log_write = atoi(optarg);
-            break;
-        }
-        case 'm':
-        {
-            m_trig_mode = atoi(optarg);
-            break;
-        }
-        case 'o':
-        {
-            m_opt_linger = atoi(optarg);
-            break;
-        }
-        case 's':
-        {
-            m_sql_nums = atoi(optarg);
-            break;
-        }
-        case 't':
-        {
-            m_thread_nums = atoi(optarg);
-            break;
-        }
-        case 'c':
-        {
-            m_close_log = atoi(optarg);
-            break;
-        }
-        case 'a':
-        {
-            m_actor_model = atoi(optarg);
-            break;
-        }
-        default:
-            break;
+            case 'p':
+            {
+                set_port(atoi(optarg));
+                break;
+            }
+            case 'l':
+            {
+                set_log_write(atoi(optarg));
+                break;
+            }
+            case 'm':
+            {
+                set_trig_mode(atoi(optarg));
+                break;
+            }
+            case 'o':
+            {
+                set_opt_linger(atoi(optarg));
+                break;
+            }
+            case 's':
+            {
+                set_sql_nums(atoi(optarg));
+                break;
+            }
+            case 't':
+            {
+                set_thread_nums(atoi(optarg));
+                break;
+            }
+            case 'c':
+            {
+                set_close_log(atoi(optarg));
+                break;
+            }
+            case 'a':
+            {
+                set_actor_model(atoi(optarg));
+                break;
+            }
+            case 'u':
+            {
+                set_user(optarg);
+                break;
+            }
+            case 'w':
+            {
+                set_password(optarg);
+                break;
+            }
+            case 'd':
+            {
+                set_database_name(optarg);
+                break;
+            }
+
+            default:
+                break;
         }
     }
 }

@@ -1,6 +1,8 @@
 #include "webserver.h"
 
-WebServer::WebServer(const Config& parse_config):config(parse_config){
+WebServer::WebServer(const Config& parse_config)
+    : config(parse_config)
+{
         //http_conn类对象
         users = new http_conn[MAX_FD];
 
@@ -33,41 +35,42 @@ WebServer::~WebServer()
 
 void WebServer::trig_mode()
 {
+    const int trig_mode = config.get_trig_mode();
     //LT + LT
-    if (0 == config.m_trig_mode)
+    if (0 == trig_mode)
     {
-        config.m_listen_trig_mode = 0;
-        config.m_conn_trig_mode = 0;
+        config.set_listen_trig_mode(0);
+        config.set_conn_trig_mode(0);
     }
     //LT + ET
-    else if (1 == config.m_trig_mode)
+    else if (1 == trig_mode)
     {
-        config.m_listen_trig_mode = 0;
-        config.m_conn_trig_mode = 1;
+        config.set_listen_trig_mode(0);
+        config.set_conn_trig_mode(1);
     }
     //ET + LT
-    else if (2 == config.m_trig_mode)
+    else if (2 == trig_mode)
     {
-        config.m_listen_trig_mode = 1;
-        config.m_conn_trig_mode = 0;
+        config.set_listen_trig_mode(1);
+        config.set_conn_trig_mode(0);
     }
     //ET + ET
-    else if (3 == config.m_trig_mode)
+    else if (3 == trig_mode)
     {
-        config.m_listen_trig_mode = 1;
-        config.m_conn_trig_mode = 1;
+        config.set_listen_trig_mode(1);
+        config.set_conn_trig_mode(1);
     }
 }
 
 void WebServer::log_write()
 {
-    if (0 == config.m_close_log)
+    if (0 == config.get_close_log())
     {
         //初始化日志
-        if (1 == config.m_log_write)
-            Log::get_instance()->init("./ServerLog", config.m_close_log, 2000, 800000, 800);
+        if (1 == config.get_log_write())
+            Log::get_instance()->init("./ServerLog", config.get_close_log(), 2000, 800000, 800);
         else
-            Log::get_instance()->init("./ServerLog", config.m_close_log, 2000, 800000, 0);
+            Log::get_instance()->init("./ServerLog", config.get_close_log(), 2000, 800000, 0);
     }
 }
 
@@ -75,7 +78,7 @@ void WebServer::sql_pool()
 {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
-    m_connPool->init("localhost", config.m_user, config.m_password, config.m_database_name, 3306, config.m_sql_nums, config.m_close_log);
+    m_connPool->init("localhost", config.get_user(), config.get_password(), config.get_database_name(), 3306, config.get_sql_nums(), config.get_close_log());
 
     //初始化数据库读取表
     users->initmysql_result(m_connPool);
@@ -84,7 +87,7 @@ void WebServer::sql_pool()
 void WebServer::thread_pool()
 {
     //线程池
-    m_pool = new threadpool<http_conn>(config.m_actor_model, m_connPool, config.m_thread_nums);
+    m_pool = new threadpool<http_conn>(config.get_actor_model(), m_connPool, config.get_thread_nums());
 }
 
 void WebServer::eventListen()
@@ -94,12 +97,12 @@ void WebServer::eventListen()
     assert(m_listenfd >= 0);
 
     //优雅关闭连接
-    if (0 == config.m_opt_linger)
+    if (0 == config.get_opt_linger())
     {
         struct linger tmp = {0, 1};
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
     }
-    else if (1 == config.m_opt_linger)
+    else if (1 == config.get_opt_linger())
     {
         struct linger tmp = {1, 1};
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
@@ -110,7 +113,7 @@ void WebServer::eventListen()
     bzero(&address, sizeof(address));
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY);
-    address.sin_port = htons(config.m_port);
+    address.sin_port = htons(config.get_port());
 
     int flag = 1;
     setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
@@ -126,7 +129,7 @@ void WebServer::eventListen()
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
-    utils.addfd(m_epollfd, m_listenfd, false, config.m_listen_trig_mode);
+    utils.addfd(m_epollfd, m_listenfd, false, config.get_listen_trig_mode());
     http_conn::m_epollfd = m_epollfd;
 
     ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd);
@@ -147,7 +150,7 @@ void WebServer::eventListen()
 
 void WebServer::timer(int connfd, struct sockaddr_in client_address)
 {
-    users[connfd].init(connfd, client_address, m_root, config.m_conn_trig_mode, config.m_close_log, config.m_user, config.m_password, config.m_database_name);
+    users[connfd].init(connfd, client_address, m_root, config.get_conn_trig_mode(), config.get_close_log(), config.get_user(), config.get_password(), config.get_database_name());
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
@@ -188,7 +191,7 @@ bool WebServer::dealclinetdata()
 {
     struct sockaddr_in client_address;
     socklen_t client_addrlength = sizeof(client_address);
-    if (0 == config.m_listen_trig_mode)
+    if (0 == config.get_listen_trig_mode())
     {
         int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
         if (connfd < 0)
@@ -269,7 +272,7 @@ void WebServer::dealwithread(int sockfd)
     util_timer *timer = users_timer[sockfd].timer;
 
     //reactor
-    if (1 == config.m_actor_model)
+    if (1 == config.get_actor_model())
     {
         if (timer)
         {
@@ -319,7 +322,7 @@ void WebServer::dealwithwrite(int sockfd)
 {
     util_timer *timer = users_timer[sockfd].timer;
     //reactor
-    if (1 == config.m_actor_model)
+    if (1 == config.get_actor_model())
     {
         if (timer)
         {
