@@ -81,7 +81,9 @@ private:
     std::string m_password;
 
     //使用数据库名    
-    std::string m_database_name; 
+    std::string m_database_name;
+
+    void select_trig_mode();
 };
 
 inline void Config::set_port(const int value)

@@ -33,34 +33,6 @@ WebServer::~WebServer()
     }
 }
 
-void WebServer::trig_mode()
-{
-    const int trig_mode = config.get_trig_mode();
-    //LT + LT
-    if (0 == trig_mode)
-    {
-        config.set_listen_trig_mode(0);
-        config.set_conn_trig_mode(0);
-    }
-    //LT + ET
-    else if (1 == trig_mode)
-    {
-        config.set_listen_trig_mode(0);
-        config.set_conn_trig_mode(1);
-    }
-    //ET + LT
-    else if (2 == trig_mode)
-    {
-        config.set_listen_trig_mode(1);
-        config.set_conn_trig_mode(0);
-    }
-    //ET + ET
-    else if (3 == trig_mode)
-    {
-        config.set_listen_trig_mode(1);
-        config.set_conn_trig_mode(1);
-    }
-}
 
 void WebServer::log_write()
 {

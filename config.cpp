@@ -37,6 +37,35 @@ Config::Config()
     m_database_name = "yourdb";
 }
 
+
+void Config::select_trig_mode() {
+    const int trig_mode = get_trig_mode();
+    //LT + LT
+    if (0 == trig_mode)
+    {
+        set_listen_trig_mode(0);
+        set_conn_trig_mode(0);
+    }
+        //LT + ET
+    else if (1 == trig_mode)
+    {
+        set_listen_trig_mode(0);
+        set_conn_trig_mode(1);
+    }
+        //ET + LT
+    else if (2 == trig_mode)
+    {
+        set_listen_trig_mode(1);
+        set_conn_trig_mode(0);
+    }
+        //ET + ET
+    else if (3 == trig_mode)
+    {
+        set_listen_trig_mode(1);
+        set_conn_trig_mode(1);
+    }
+}
+
 void Config::parse_arg(int argc, char* argv[])
 {
     int opt;
@@ -105,4 +134,5 @@ void Config::parse_arg(int argc, char* argv[])
                 break;
         }
     }
+    select_trig_mode();
 }

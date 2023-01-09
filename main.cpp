@@ -16,9 +16,6 @@ int main(int argc, char *argv[])
     //线程池
     server.thread_pool();
 
-    //触发模式
-    server.trig_mode();
-
     //监听
     server.eventListen();
 
