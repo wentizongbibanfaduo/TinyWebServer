@@ -40,6 +40,7 @@ public:
     bool dealwithsignal(bool& timeout, bool& stop_server);
     void dealwithread(int sockfd);
     void dealwithwrite(int sockfd);
+    bool accept_client_data(struct sockaddr_in& client_address, socklen_t& client_addrlength);
 
 public:
     //基础
