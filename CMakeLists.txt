@@ -10,7 +10,7 @@ set(
   ./CGImysql/sql_connection_pool.cpp  
   webserver.cpp 
   config.cpp)
-add_compile_options(-O2)
+#add_compile_options(-O2)
 add_executable(server ${source_files})
 target_link_libraries(server pthread mysqlclient)
 install(TARGETS server DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})

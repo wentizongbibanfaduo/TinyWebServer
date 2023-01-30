@@ -12,7 +12,7 @@ build(){
 	fi
 	mkdir build
 	pushd build
-	cmake ..
+	cmake .. -DCMAKE_BUILD_TYPE=Debug
 	make -j8
 	make install
 	popd

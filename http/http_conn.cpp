@@ -496,6 +496,60 @@ http_conn::HTTP_CODE http_conn::do_request()
 
         free(m_url_real);
     }
+    else if (*(p + 1) == 'a')
+    {
+        char *m_url_real = (char *)malloc(sizeof(char) * 200);
+        strcpy(m_url_real, "/deleteUser.html");
+        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+
+        free(m_url_real);
+    }
+    else if (*(p + 1) == 'b')
+    {
+        char *m_url_real = (char *)malloc(sizeof(char) * 200);
+        strcpy(m_url_real, "/changePassword.html");
+        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+
+        free(m_url_real);
+    }
+    else if (*(p + 1) == 'c') // delete user
+    {
+        char name[100], password[100];
+        int i;
+        for (i = 5; m_string[i] != '&'; ++i)
+            name[i - 5] = m_string[i];
+        name[i - 5] = '\0';
+
+        int j = 0;
+        for (i = i + 10; m_string[i] != '\0'; ++i, ++j)
+            password[j] = m_string[i];
+        password[j] = '\0';
+        //如果是注册，先检测数据库中是否有重名的
+        //没有重名的，进行增加数据
+        char *sql_insert = (char *)malloc(sizeof(char) * 200);
+        strcpy(sql_insert, "DELETE FROM user WHERE name=");
+        strcat(sql_insert, name);
+
+        if (users.find(name) != users.end() && users[name] == password)
+        {
+            m_lock.lock();
+            int res = mysql_query(mysql, sql_insert);
+            users.erase(name);
+            m_lock.unlock();
+
+            if (!res)
+                strcpy(m_url, "/log.html");
+            else
+                strcpy(m_url, "/deleteUserError.html");
+        }
+        else
+            strcpy(m_url, "/deleteUserError.html");
+
+    }
+    else if (*(p + 1) == 'd') //change password
+    {
+
+    }
     else
         strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
 
