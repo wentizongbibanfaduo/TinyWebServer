@@ -527,7 +527,7 @@ http_conn::HTTP_CODE http_conn::do_request()
         //如果是注册，先检测数据库中是否有重名的
         //没有重名的，进行增加数据
         char *sql_insert = (char *)malloc(sizeof(char) * 200);
-        strcpy(sql_insert, "DELETE FROM user WHERE name=");
+        strcpy(sql_insert, "DELETE FROM user WHERE username=");
         strcat(sql_insert, name);
 
         if (users.find(name) != users.end() && users[name] == password)
@@ -544,6 +544,8 @@ http_conn::HTTP_CODE http_conn::do_request()
         }
         else
             strcpy(m_url, "/deleteUserError.html");
+
+        strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
 
     }
     else if (*(p + 1) == 'd') //change password
