@@ -29,6 +29,8 @@
 class http_conn
 {
 public:
+    const int MAX_SQL_LENGTH = 200;
+    const int MAX_URL_LENGTH = 200;
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
     static const int WRITE_BUFFER_SIZE = 1024;
@@ -106,6 +108,7 @@ private:
     bool add_content_length(int content_length);
     bool add_linger();
     bool add_blank_line();
+    std::string add_account_sql(const std::string& username, const std::string& password);
 
 public:
     static int m_epollfd;

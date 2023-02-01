@@ -385,6 +385,31 @@ http_conn::HTTP_CODE http_conn::process_read()
     return NO_REQUEST;
 }
 
+bool parse_account(const std::string& text, std::string& username, std::string& passwd) {
+    if(text.empty()) {
+        return false;
+    }
+    int pos = text.find("&");
+    if (pos == text.npos)
+    {
+        return false;
+    }
+    username = text.substr(0, pos);
+    passwd = text.substr(pos + 1, -1);
+    return true;
+}
+
+std::string http_conn::add_account_sql(const std::string& username, const std::string& password) {
+    char sql_insert[MAX_SQL_LENGTH];
+    strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
+    strcat(sql_insert, "'");
+    strcat(sql_insert, username.c_str());
+    strcat(sql_insert, "', '");
+    strcat(sql_insert, password.c_str());
+    strcat(sql_insert, "')");
+    return sql_insert;
+}
+
 http_conn::HTTP_CODE http_conn::do_request()
 {
     strcpy(m_real_file, doc_root);
@@ -395,45 +420,29 @@ http_conn::HTTP_CODE http_conn::do_request()
     //处理cgi
     if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
     {
-
-        //根据标志判断是登录检测还是注册检测
-        char flag = m_url[1];
-
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
+        char m_url_real[MAX_URL_LENGTH];
         strcpy(m_url_real, "/");
         strcat(m_url_real, m_url + 2);
         strncpy(m_real_file + len, m_url_real, FILENAME_LEN - len - 1);
-        free(m_url_real);
 
         //将用户名和密码提取出来
         //user=123&passwd=123
-        char name[100], password[100];
-        int i;
-        for (i = 5; m_string[i] != '&'; ++i)
-            name[i - 5] = m_string[i];
-        name[i - 5] = '\0';
-
-        int j = 0;
-        for (i = i + 10; m_string[i] != '\0'; ++i, ++j)
-            password[j] = m_string[i];
-        password[j] = '\0';
-
+        std::string name;
+        std::string password;
+        if(!parse_account(m_string, name, password)) {
+            LOG_ERROR("parseAccount failed! recv account : %s", m_string);
+            return BAD_REQUEST;
+        }
+        
         if (*(p + 1) == '3')
         {
             //如果是注册，先检测数据库中是否有重名的
             //没有重名的，进行增加数据
-            char *sql_insert = (char *)malloc(sizeof(char) * 200);
-            strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
-            strcat(sql_insert, "'");
-            strcat(sql_insert, name);
-            strcat(sql_insert, "', '");
-            strcat(sql_insert, password);
-            strcat(sql_insert, "')");
-
+            std::string sql = add_account_sql(name, password);
             if (users.find(name) == users.end())
             {
                 m_lock.lock();
-                int res = mysql_query(mysql, sql_insert);
+                int res = mysql_query(mysql, sql.c_str());
                 users.insert(pair<string, string>(name, password));
                 m_lock.unlock();
 
@@ -550,7 +559,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     }
     else if (*(p + 1) == 'd') //change password
     {
-
+            
     }
     else
         strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
