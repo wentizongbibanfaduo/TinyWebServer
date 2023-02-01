@@ -410,13 +410,58 @@ std::string http_conn::add_account_sql(const std::string& username, const std::s
     return sql_insert;
 }
 
+std::string http_conn::process_add_account(const std::string &name, const std::string& password) {
+    //如果是注册，先检测数据库中是否有重名的
+    //没有重名的，进行增加数据
+    std::string sql = add_account_sql(name, password);
+    if (users.find(name) == users.end())
+    {
+        m_lock.lock();
+        int res = mysql_query(mysql, sql.c_str());
+        users.insert(pair<string, string>(name, password));
+        m_lock.unlock();
+
+        if (!res)
+            return "/log.html";
+    }
+    return "/registerError.html";
+}
+
+std::string http_conn::process_login_account(const std::string &name, const std::string& password) {
+    if (users.find(name) != users.end() && users[name] == password) {
+        return "/welcome.html";
+    }
+    return "/logError.html";
+}
+
+std::string http_conn::delete_account_sql(const std::string& username, const std::string& password) {
+    char sql_insert[MAX_SQL_LENGTH];
+    strcpy(sql_insert, "DELETE FROM user WHERE username=");
+    strcat(sql_insert, name);
+    return sql_insert;
+}
+
+std::string http_conn::process_delete_account(const std::string &name, const std::string& password) {
+    std::string sql = delete_account_sql(name, password);
+    if (users.find(name) != users.end() && users[name] == password)
+    {
+        m_lock.lock();
+        int res = mysql_query(mysql, sql_insert);
+        users.erase(name);
+        m_lock.unlock();
+
+        if (!res)
+            return "/log.html";
+    }
+    return "/deleteUserError.html";
+}
 http_conn::HTTP_CODE http_conn::do_request()
 {
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     //printf("m_url:%s\n", m_url);
     const char *p = strrchr(m_url, '/');
-
+    std::string url_path;
     //处理cgi
     if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
     {
@@ -436,133 +481,49 @@ http_conn::HTTP_CODE http_conn::do_request()
         
         if (*(p + 1) == '3')
         {
-            //如果是注册，先检测数据库中是否有重名的
-            //没有重名的，进行增加数据
-            std::string sql = add_account_sql(name, password);
-            if (users.find(name) == users.end())
-            {
-                m_lock.lock();
-                int res = mysql_query(mysql, sql.c_str());
-                users.insert(pair<string, string>(name, password));
-                m_lock.unlock();
-
-                if (!res)
-                    strcpy(m_url, "/log.html");
-                else
-                    strcpy(m_url, "/registerError.html");
-            }
-            else
-                strcpy(m_url, "/registerError.html");
+            url_path = process_add_account(name, password);
         }
-        //如果是登录，直接判断
-        //若浏览器端输入的用户名和密码在表中可以查找到，返回1，否则返回0
         else if (*(p + 1) == '2')
         {
-            if (users.find(name) != users.end() && users[name] == password)
-                strcpy(m_url, "/welcome.html");
-            else
-                strcpy(m_url, "/logError.html");
+            url_path = process_login_account(name, password);
         }
+        else if (*(p + 1) == 'c')
+        {
+            url_path = process_delete_account(name, password);
+        }
+
     }
 
     if (*(p + 1) == '0')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/register.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/register.html";
     }
     else if (*(p + 1) == '1')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/log.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/log.html";
     }
     else if (*(p + 1) == '5')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/picture.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/picture.html";
     }
     else if (*(p + 1) == '6')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/video.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/video.html";
     }
     else if (*(p + 1) == '7')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/fans.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/fans.html";
     }
     else if (*(p + 1) == 'a')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/deleteUser.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/deleteUser.html";
     }
     else if (*(p + 1) == 'b')
     {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/changePassword.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
+        url_path = "/changePassword.html";
     }
-    else if (*(p + 1) == 'c') // delete user
-    {
-        char name[100], password[100];
-        int i;
-        for (i = 5; m_string[i] != '&'; ++i)
-            name[i - 5] = m_string[i];
-        name[i - 5] = '\0';
 
-        int j = 0;
-        for (i = i + 10; m_string[i] != '\0'; ++i, ++j)
-            password[j] = m_string[i];
-        password[j] = '\0';
-        //如果是注册，先检测数据库中是否有重名的
-        //没有重名的，进行增加数据
-        char *sql_insert = (char *)malloc(sizeof(char) * 200);
-        strcpy(sql_insert, "DELETE FROM user WHERE username=");
-        strcat(sql_insert, name);
-
-        if (users.find(name) != users.end() && users[name] == password)
-        {
-            m_lock.lock();
-            int res = mysql_query(mysql, sql_insert);
-            users.erase(name);
-            m_lock.unlock();
-
-            if (!res)
-                strcpy(m_url, "/log.html");
-            else
-                strcpy(m_url, "/deleteUserError.html");
-        }
-        else
-            strcpy(m_url, "/deleteUserError.html");
-
-        strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
-
-    }
-    else if (*(p + 1) == 'd') //change password
-    {
-            
-    }
-    else
-        strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
+    strncpy(m_real_file + len, url_path.c_str(), FILENAME_LEN - len - 1);
 
     if (stat(m_real_file, &m_file_stat) < 0)
         return NO_RESOURCE;

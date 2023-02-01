@@ -109,6 +109,7 @@ private:
     bool add_linger();
     bool add_blank_line();
     std::string add_account_sql(const std::string& username, const std::string& password);
+    std::string process_add_account(const std::string &name, const std::string& password);
 
 public:
     static int m_epollfd;
