@@ -149,7 +149,7 @@ void http_conn::init()
     m_checked_idx = 0;
     m_read_idx = 0;
     m_write_idx = 0;
-    cgi = 0;
+    m_cgi = 0;
     m_state = 0;
     timer_flag = 0;
     improv = 0;
@@ -253,7 +253,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     else if (strcasecmp(method, "POST") == 0)
     {
         m_method = POST;
-        cgi = 1;
+        m_cgi = 1;
     }
     else
         return BAD_REQUEST;
@@ -437,7 +437,7 @@ std::string http_conn::process_login_account(const std::string &name, const std:
 std::string http_conn::delete_account_sql(const std::string& username, const std::string& password) {
     char sql_insert[MAX_SQL_LENGTH];
     strcpy(sql_insert, "DELETE FROM user WHERE username=");
-    strcat(sql_insert, username);
+    strcat(sql_insert, username.c_str());
     return sql_insert;
 }
 
@@ -446,7 +446,7 @@ std::string http_conn::process_delete_account(const std::string &name, const std
     if (users.find(name) != users.end() && users[name] == password)
     {
         m_lock.lock();
-        int res = mysql_query(mysql, sql_insert);
+        int res = mysql_query(mysql, sql.c_str());
         users.erase(name);
         m_lock.unlock();
 
@@ -461,9 +461,12 @@ http_conn::HTTP_CODE http_conn::do_request()
     int len = strlen(doc_root);
     //printf("m_url:%s\n", m_url);
     const char *p = strrchr(m_url, '/');
-    std::string url_path;
+    std::string url_path(m_url);
+    printf("url_path: %s\n", url_path.c_str());
+    printf("*p : %s \n", p);
+    printf("cgi : %s \n", m_cgi);
     //处理cgi
-    if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
+    if (m_cgi == 1)
     {
         char m_url_real[MAX_URL_LENGTH];
         strcpy(m_url_real, "/");
@@ -496,6 +499,7 @@ http_conn::HTTP_CODE http_conn::do_request()
 
     if (*(p + 1) == '0')
     {
+	printf("enter p+1 = 0");
         url_path = "/register.html";
     }
     else if (*(p + 1) == '1')
