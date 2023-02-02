@@ -394,8 +394,9 @@ bool parse_account(const std::string& text, std::string& username, std::string& 
     {
         return false;
     }
-    username = text.substr(0, pos);
-    passwd = text.substr(pos + 1, -1);
+
+    username = text.substr(5, pos - 5);
+    passwd = text.substr(pos + 8, -1);
     return true;
 }
 
@@ -465,13 +466,8 @@ http_conn::HTTP_CODE http_conn::do_request()
     printf("url_path: %s\n", url_path.c_str());
     printf("*p : %s \n", p);
     //处理cgi
-    if (m_method == POST)
+    if (*(p + 1) == '2' || *(p + 1) == '3' || *(p + 1) == 'c' )
     {
-        char m_url_real[MAX_URL_LENGTH];
-        strcpy(m_url_real, "/");
-        strcat(m_url_real, m_url + 2);
-        strncpy(m_real_file + len, m_url_real, FILENAME_LEN - len - 1);
-
         //将用户名和密码提取出来
         //user=123&passwd=123
         std::string name;
