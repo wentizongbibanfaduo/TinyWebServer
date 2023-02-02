@@ -108,8 +108,12 @@ private:
     bool add_content_length(int content_length);
     bool add_linger();
     bool add_blank_line();
+    
     std::string add_account_sql(const std::string& username, const std::string& password);
+    std::string delete_account_sql(const std::string& username, const std::string& password);
     std::string process_add_account(const std::string &name, const std::string& password);
+    std::string process_login_account(const std::string &name, const std::string& password);
+    std::string process_delete_account(const std::string &name, const std::string& password);
 
 public:
     static int m_epollfd;

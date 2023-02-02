@@ -437,7 +437,7 @@ std::string http_conn::process_login_account(const std::string &name, const std:
 std::string http_conn::delete_account_sql(const std::string& username, const std::string& password) {
     char sql_insert[MAX_SQL_LENGTH];
     strcpy(sql_insert, "DELETE FROM user WHERE username=");
-    strcat(sql_insert, name);
+    strcat(sql_insert, username);
     return sql_insert;
 }
 
