@@ -464,9 +464,8 @@ http_conn::HTTP_CODE http_conn::do_request()
     std::string url_path(m_url);
     printf("url_path: %s\n", url_path.c_str());
     printf("*p : %s \n", p);
-    printf("cgi : %s \n", m_cgi);
     //处理cgi
-    if (m_cgi == 1)
+    if (m_method == POST)
     {
         char m_url_real[MAX_URL_LENGTH];
         strcpy(m_url_real, "/");
